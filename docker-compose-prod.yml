@@ -1,0 +1,14 @@
+services:
+  awgkeygen-bot:
+    image: dato1/awgkeygen-bot:1.0.0
+    container_name: awgkeygen-bot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_PATH: /app/data/bot.db
+    volumes:
+      # База пользователей
+      - ./data:/app/data
+      # Доступ к Docker на хосте — нужен для docker exec amnezia-awg2
+      - /var/run/docker.sock:/var/run/docker.sock
+    # Контейнер amnezia-awg2 должен быть запущен на том же хосте

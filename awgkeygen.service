@@ -1,0 +1,16 @@
+[Unit]
+Description=AmneziaWG Telegram Key Bot
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/awgkeygen
+EnvironmentFile=/opt/awgkeygen/.env
+ExecStart=/opt/awgkeygen/.venv/bin/python -m bot.main
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
