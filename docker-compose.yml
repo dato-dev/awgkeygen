@@ -6,6 +6,7 @@ services:
     env_file: .env
     environment:
       DATABASE_PATH: /app/data/bot.db
+      DOCKER_API_VERSION: "1.44"
     volumes:
       # База пользователей
       - ./data:/app/data

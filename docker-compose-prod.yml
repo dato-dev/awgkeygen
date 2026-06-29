@@ -1,14 +1,33 @@
 services:
   awgkeygen-bot:
-    image: dato1/awgkeygen-bot:1.0.0
+    # Тег latest — версию в compose менять не нужно.
+    # Watchtower сам подтянет новый образ с Docker Hub и перезапустит контейнер.
+    image: dato1/awgkeygen:latest
     container_name: awgkeygen-bot
     restart: unless-stopped
     env_file: .env
     environment:
       DATABASE_PATH: /app/data/bot.db
+      # Docker на хосте новее клиента в образе (API ≥ 1.40)
+      DOCKER_API_VERSION: "1.44"
     volumes:
-      # База пользователей
       - ./data:/app/data
-      # Доступ к Docker на хосте — нужен для docker exec amnezia-awg2
       - /var/run/docker.sock:/var/run/docker.sock
-    # Контейнер amnezia-awg2 должен быть запущен на том же хосте
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  watchtower:
+    image: containrrr/watchtower:1.7.1
+    container_name: awgkeygen-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Проверять Docker Hub каждые 5 минут
+      WATCHTOWER_POLL_INTERVAL: 300
+      # Обновлять только контейнеры с label (awgkeygen-bot), не amnezia-awg2
+      WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_ROLLING_RESTART: "true"
+      # Клиент внутри Watchtower старый — явно указываем API хоста
+      DOCKER_API_VERSION: "1.44"
