@@ -162,6 +162,20 @@ docker compose up -d --build  # обновление после git pull
 
 На сервере используйте `docker-compose-prod.yml`. Образ всегда `dato1/awgkeygen-bot:latest` — **версию в compose менять не нужно**.
 
+### Реестры образов
+
+Один и тот же образ (один digest) публикуется в **два реестра** — выбирайте любой:
+
+| Реестр | Образ |
+|---|---|
+| Docker Hub | `dato1/awgkeygen-bot` |
+| GitHub Container Registry | `ghcr.io/dato-dev/awgkeygen-bot` |
+
+GHCR-пакет публичный — `docker pull` работает без логина. Для приватного
+доступа: `echo $GITHUB_TOKEN | docker login ghcr.io -u <user> --password-stdin`.
+Чтобы тянуть из GHCR, раскомментируйте соответствующую строку `image:` в
+`docker-compose-prod.yml`.
+
 ### Как это работает
 
 ```
