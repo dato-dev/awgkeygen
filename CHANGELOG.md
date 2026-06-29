@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.4](https://github.com/dato-dev/awgkeygen/compare/v1.4.3...v1.4.4) (2026-06-29)
+
+
+### 📦 Build & Deps
+
+* rename published image, drop -bot suffix ([0aab852](https://github.com/dato-dev/awgkeygen/commit/0aab852117d8e6c3682ac9a5b1cd6eadf1dd81f2))
+
+
+### 👷 CI
+
+* add Dependabot for pip, docker and github-actions ([a5fae03](https://github.com/dato-dev/awgkeygen/commit/a5fae0345d89b7581fa51336465f7c469fae8e0f))
+
 ## [1.4.3](https://github.com/dato-dev/awgkeygen/compare/v1.4.2...v1.4.3) (2026-06-29)
 
 
