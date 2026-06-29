@@ -6,6 +6,7 @@ import logging
 import subprocess
 from dataclasses import dataclass
 
+from bot.awg.stats import PeerStats, parse_awg_show
 from bot.awg.vpnuri import generate_vpn_uri
 from bot.awg.config_parser import (
     ConfigParseError,
@@ -15,6 +16,7 @@ from bot.awg.config_parser import (
     get_listen_port,
     get_server_public_key,
     parse_config,
+    remove_peer,
     serialize_config,
     update_peer_keys,
 )
@@ -23,6 +25,9 @@ logger = logging.getLogger(__name__)
 
 PSK_PATH = "/opt/amnezia/awg/wireguard_psk.key"
 SERVER_PUBKEY_PATH = "/opt/amnezia/awg/wireguard_server_public_key.key"
+
+# Префикс имён автономных ключей (не привязаны к Telegram-аккаунту)
+MANUAL_PREFIX = "manual_"
 
 
 class AWGError(Exception):
@@ -239,8 +244,8 @@ class AWGManager:
     def _client_name(self, telegram_id: int) -> str:
         return f"tg_{telegram_id}"
 
-    def create_key(self, telegram_id: int) -> ClientKey:
-        name = self._client_name(telegram_id)
+    def create_named_key(self, name: str) -> ClientKey:
+        """Создать peer с произвольным именем. Возвращает ClientKey."""
         config_text = self._read_file(self.config_path)
         config = parse_config(config_text)
 
@@ -266,6 +271,23 @@ class AWGManager:
         )
         logger.info("Создан ключ для %s (%s)", name, client_ip)
         return result
+
+    def create_key(self, telegram_id: int) -> ClientKey:
+        return self.create_named_key(self._client_name(telegram_id))
+
+    def create_manual_key(self, label: str) -> ClientKey:
+        """Создать автономный ключ (без привязки к Telegram-аккаунту)."""
+        return self.create_named_key(f"{MANUAL_PREFIX}{label}")
+
+    def list_manual_keys(self) -> list[tuple[str, str]]:
+        """Список автономных ключей: (метка без префикса, IP)."""
+        config = parse_config(self._read_file(self.config_path))
+        result = []
+        for peer in config.peers.values():
+            if peer.name.startswith(MANUAL_PREFIX):
+                label = peer.name[len(MANUAL_PREFIX):]
+                result.append((label, peer.allowed_ips.split("/")[0]))
+        return sorted(result)
 
     def get_existing_key(self, telegram_id: int) -> ClientKey:
         name = self._client_name(telegram_id)
@@ -325,7 +347,6 @@ class AWGManager:
         return result
 
     def repair_peer(self, telegram_id: int) -> ClientKey:
-        """Починить peer на сервере (добавить PSK, применить конфиг) без смены ключей."""
         name = self._client_name(telegram_id)
         config_text = self._read_file(self.config_path)
         config = parse_config(config_text)
@@ -350,6 +371,56 @@ class AWGManager:
             name, peer.private_key or "", peer.public_key, peer.allowed_ips,
             config.interface, server_pubkey, psk, port,
         )
+
+    def delete_named_key(self, name: str) -> str:
+        """Удалить peer по имени с сервера. Возвращает IP."""
+        config_text = self._read_file(self.config_path)
+        config = parse_config(config_text)
+
+        if name not in config.peers:
+            raise AWGError("Ключ не найден на сервере.")
+
+        peer = remove_peer(config, name)
+        self._write_file(self.config_path, serialize_config(config))
+
+        try:
+            self._exec(f"awg set awg0 peer {peer.public_key} remove")
+        except AWGError:
+            logger.warning("Не удалось удалить peer из интерфейса %s", peer.public_key)
+
+        self._apply_config()
+        logger.info("Удалён ключ для %s (%s)", name, peer.allowed_ips)
+        return peer.allowed_ips
+
+    def delete_key(self, telegram_id: int) -> str:
+        """Удалить ключ пользователя с сервера. Возвращает IP."""
+        return self.delete_named_key(self._client_name(telegram_id))
+
+    def delete_manual_key(self, label: str) -> str:
+        """Удалить автономный ключ по метке. Возвращает IP."""
+        return self.delete_named_key(f"{MANUAL_PREFIX}{label}")
+
+    def _fetch_peer_stats(self) -> dict[str, PeerStats]:
+        output = self._exec("awg show awg0")
+        return parse_awg_show(output)
+
+    def get_peer_stats(self, telegram_id: int) -> PeerStats | None:
+        name = self._client_name(telegram_id)
+        config_text = self._read_file(self.config_path)
+        config = parse_config(config_text)
+        if name not in config.peers:
+            return None
+        pubkey = config.peers[name].public_key
+        return self._fetch_peer_stats().get(pubkey)
+
+    def get_all_peer_stats(self) -> dict[str, PeerStats]:
+        return self._fetch_peer_stats()
+
+    def get_peer_name_map(self) -> dict[str, str]:
+        """public_key → #_Name peer."""
+        config_text = self._read_file(self.config_path)
+        config = parse_config(config_text)
+        return {p.public_key: p.name for p in config.peers.values()}
 
     def has_key(self, telegram_id: int) -> bool:
         name = self._client_name(telegram_id)

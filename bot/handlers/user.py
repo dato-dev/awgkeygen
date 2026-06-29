@@ -8,6 +8,7 @@ from bot.awg.manager import AWGError, AWGManager
 from bot.database import Database, UserStatus
 from bot.services.keys import deliver_key, run_awg
 from bot.texts import (
+    admin_new_request,
     user_help,
     user_status,
     user_welcome_approved,
@@ -40,11 +41,12 @@ async def cmd_start(
 
     if user.status == UserStatus.PENDING:
         if is_new:
-            from bot.texts import admin_new_request
+            from bot.keyboards import admin_new_user_keyboard
             text = admin_new_request(user)
+            kb = admin_new_user_keyboard(user.telegram_id)
             for admin_id in admin_ids:
                 try:
-                    await bot.send_message(admin_id, text)
+                    await bot.send_message(admin_id, text, reply_markup=kb)
                 except Exception:
                     logger.exception("Не удалось уведомить админа %s", admin_id)
         await message.answer(user_welcome_pending())
@@ -109,7 +111,7 @@ async def cmd_key(
         )
         return
 
-    await message.answer("⏳ Генерирую ключ...")
+    await message.answer("⏳ <b>Генерирую ключ...</b> 🔄")
 
     try:
         result = await run_awg(awg.create_key, message.from_user.id)
@@ -140,7 +142,7 @@ async def cmd_remint(
         await message.answer("У вас ещё нет ключа. Используйте /key")
         return
 
-    await message.answer("⏳ Перечеканиваю ключ...")
+    await message.answer("⏳ <b>Перечеканиваю ключ...</b> 🔄")
 
     try:
         result = await run_awg(awg.remint_key, message.from_user.id)

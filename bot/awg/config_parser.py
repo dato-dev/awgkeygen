@@ -258,3 +258,22 @@ def get_server_public_key(config: ServerConfig) -> str:
 
 def get_listen_port(config: ServerConfig) -> str:
     return config.interface.get("ListenPort", "51820")
+
+
+def remove_peer(config: ServerConfig, name: str) -> Peer:
+    """Удалить peer из конфига. Возвращает удалённый peer."""
+    if name not in config.peers:
+        raise ConfigParseError(f"Клиент '{name}' не найден")
+
+    peer = config.peers[name]
+    min_line, max_line = peer.start_line, peer.end_line
+    del config.lines[min_line : max_line + 1]
+    del config.peers[name]
+
+    removed = max_line - min_line + 1
+    for other in config.peers.values():
+        if other.start_line > max_line:
+            other.start_line -= removed
+            other.end_line -= removed
+
+    return peer
