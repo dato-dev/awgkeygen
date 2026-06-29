@@ -22,15 +22,3 @@
 
 * add Docker image build and publish workflow ([d37bac0](https://github.com/dato-dev/awgkeygen/commit/d37bac0a24ec6a844f08c4c1273a095cc586ea23))
 * add release-please for automated versioning and changelog ([3e20ab7](https://github.com/dato-dev/awgkeygen/commit/3e20ab7a9887a1c71e9872ee607a9a843986bbb3))
-
-## Changelog
-
-Все значимые изменения проекта документируются в этом файле.
-
-Формат основан на [Keep a Changelog](https://keepachangelog.com/),
-проект следует [семантическому версионированию](https://semver.org/lang/ru/).
-
-Начиная с версии `1.3.8`, этот файл генерируется автоматически
-из [Conventional Commits](https://www.conventionalcommits.org/ru/) через
-[release-please](https://github.com/googleapis/release-please) — см.
-[CONTRIBUTING.md](CONTRIBUTING.md). Записи добавляются при каждом релизе.
