@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/dato-dev/awgkeygen/compare/v1.4.0...v1.4.1) (2026-06-29)
+
+
+### 📝 Documentation
+
+* drop leftover changelog boilerplate ([583b029](https://github.com/dato-dev/awgkeygen/commit/583b0298a363f58a53013896fcbe1eb45fd25661))
+
 ## [1.4.0](https://github.com/dato-dev/awgkeygen/compare/v1.3.8...v1.4.0) (2026-06-29)
 
 
