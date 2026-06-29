@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.3](https://github.com/dato-dev/awgkeygen/compare/v1.4.2...v1.4.3) (2026-06-29)
+
+
+### 🐛 Bug Fixes
+
+* **deploy:** correct prod compose image name ([e66520f](https://github.com/dato-dev/awgkeygen/commit/e66520f05dc306e7235876e2498db5eced58f691))
+
+
+### 📝 Documentation
+
+* document GHCR registry and update roadmap ([dc3b599](https://github.com/dato-dev/awgkeygen/commit/dc3b59999b9adfab4fb4fb1124d5863b24858c17))
+
+
+### 👷 CI
+
+* publish image to GHCR alongside Docker Hub ([1ded9a0](https://github.com/dato-dev/awgkeygen/commit/1ded9a067d223138b758d62db6790b995b0ae847))
+
 ## [1.4.2](https://github.com/dato-dev/awgkeygen/compare/v1.4.1...v1.4.2) (2026-06-29)
 
 
