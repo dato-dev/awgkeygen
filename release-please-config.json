@@ -6,6 +6,7 @@
       "version-file": "VERSION",
       "changelog-path": "CHANGELOG.md",
       "include-component-in-tag": false,
+      "extra-files": ["pyproject.toml"],
       "changelog-sections": [
         { "type": "feat", "section": "✨ Features" },
         { "type": "fix", "section": "🐛 Bug Fixes" },

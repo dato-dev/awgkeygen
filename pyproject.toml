@@ -1,0 +1,16 @@
+[project]
+name = "awgkeygen"
+version = "1.4.3" # x-release-please-version
+description = "Telegram bot for distributing AmneziaWG VPN keys"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiogram>=3.13,<4",
+    "python-dotenv>=1.0",
+    "qrcode[pil]>=7.4",
+    "aiosqlite>=0.20",
+]
+
+[tool.uv]
+# Приложение, а не библиотека — сам проект как пакет не устанавливаем.
+package = false

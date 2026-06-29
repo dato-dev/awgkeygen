@@ -221,18 +221,21 @@ docker compose -f docker-compose-prod.yml up -d
 
 ## Запуск без Docker (Python + systemd)
 
-Если не хотите контейнеризировать сам бот:
+Если не хотите контейнеризировать сам бот. Зависимости управляются через
+[uv](https://docs.astral.sh/uv/) (`pyproject.toml` + `uv.lock`):
 
 ```bash
 cd /opt/awgkeygen
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+
+# Установить uv (если ещё нет)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+uv sync               # создаст .venv и поставит зависимости из uv.lock
 
 cp .env.example .env
 # Отредактируйте .env
 
-python -m bot.main
+uv run python -m bot.main
 ```
 
 ### Автозапуск через systemd

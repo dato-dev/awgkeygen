@@ -142,16 +142,34 @@ Start / Production / разработка, раздел про релизы (rel
 
 ---
 
+## 7. Переход на uv ✅
+
+**Цель:** воспроизводимые сборки и быстрый менеджер зависимостей.
+
+Реализовано:
+- [`pyproject.toml`](pyproject.toml) (PEP 621) + [`uv.lock`](uv.lock) вместо
+  `requirements.txt` (удалён). Режим приложения (`[tool.uv] package = false`).
+- [`Dockerfile`](Dockerfile) — бинарь uv из `ghcr.io/astral-sh/uv`,
+  `uv sync --frozen --no-dev`, кэш слоя зависимостей; `UV_PYTHON_DOWNLOADS=never`
+  (используем Python базового образа). Сборка проверена локально.
+- Версия в `pyproject.toml` синхронизируется release-please
+  (`extra-files`, аннотация `# x-release-please-version`).
+- README: раздел запуска без Docker переведён на `uv sync` / `uv run`.
+- Dependabot (pip-экосистема) автоматически подхватывает `uv.lock`.
+
+---
+
 ## Статус
 
 | # | Задача | Статус |
 |---|---|---|
 | 2 | Docker-сборка и публикация | ✅ |
 | 3 | release-please + changelog | ✅ |
+| 4 | Dependabot | ✅ |
 | 6 | Публикация в GHCR | ✅ |
+| 7 | Переход на uv | ✅ |
 | 5 | Качественный README | 🚧 (нужны скриншоты + `BOT_LANG`) |
-| 4 | Dependabot | ⬜ |
 | 1 | Локализация (i18n) | ⬜ |
 
-Осталось: **4 (Dependabot)** — независимая и быстрая, затем **1 (i18n)**, после
-неё закрыть хвост **5** (`BOT_LANG` в таблицу переменных).
+Осталось: **1 (i18n)**, затем закрыть хвост **5** (`BOT_LANG` в таблицу
+переменных).
