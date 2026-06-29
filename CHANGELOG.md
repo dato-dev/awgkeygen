@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2](https://github.com/dato-dev/awgkeygen/compare/v1.4.1...v1.4.2) (2026-06-29)
+
+
+### 📝 Documentation
+
+* revamp README with badges, features and screenshots ([f75ca68](https://github.com/dato-dev/awgkeygen/commit/f75ca68ddf0def9dbd2a973439cee81f60dd8c4e))
+
 ## [1.4.1](https://github.com/dato-dev/awgkeygen/compare/v1.4.0...v1.4.1) (2026-06-29)
 
 
