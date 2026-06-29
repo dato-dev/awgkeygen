@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 # uv — быстрый менеджер зависимостей (берём бинарь из официального образа)
 COPY --from=ghcr.io/astral-sh/uv:0.11.25 /uv /uvx /bin/
