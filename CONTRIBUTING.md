@@ -51,7 +51,7 @@ feat!: убрать legacy-формат конфига
 3. Мёрж release-PR создаёт git-тег `vX.Y.Z` и GitHub Release.
 4. Бамп `VERSION` в `main` запускает
    [сборку Docker-образа](.github/workflows/docker-publish.yml) с новой версией
-   (`dato1/awgkeygen-bot:X.Y.Z` + `:latest`).
+   (`dato1/awgkeygen:X.Y.Z` + `:latest`).
 
 > `VERSION` **не нужно** править вручную — это делает release-please.
 > Коммиты без Conventional-префикса в релиз/changelog не попадают.

@@ -45,8 +45,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            dato1/awgkeygen-bot
-            ghcr.io/${{ github.repository_owner }}/awgkeygen-bot
+            dato1/awgkeygen
+            ghcr.io/${{ github.repository_owner }}/awgkeygen
           tags: |
             type=raw,value=latest
             type=raw,value=${{ steps.version.outputs.value }},enable=${{ github.ref == 'refs/heads/main' }}

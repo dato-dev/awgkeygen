@@ -8,7 +8,7 @@
 - ⬜ запланировано
 
 > Текущая версия: см. [`VERSION`](VERSION). CI публикует образ в Docker Hub
-> (`dato1/awgkeygen-bot`) при каждом push в `main` — см.
+> (`dato1/awgkeygen`) при каждом push в `main` — см.
 > [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml).
 
 ---
@@ -128,16 +128,14 @@ Start / Production / разработка, раздел про релизы (rel
 - `permissions: packages: write` + второй `docker/login-action` для `ghcr.io`
   с автоматическим `GITHUB_TOKEN`.
 - `images:` в `metadata-action` расширен до
-  `ghcr.io/${{ github.repository_owner }}/awgkeygen-bot` — один build пушит
+  `ghcr.io/${{ github.repository_owner }}/awgkeygen` — один build пушит
   одинаковые теги (один digest) в оба реестра.
 - [`docker-compose-prod.yml`](docker-compose-prod.yml) — GHCR закомментирован
-  как альтернативный `image:` (заодно исправлено имя образа
-  `awgkeygen` → `awgkeygen-bot`).
+  как альтернативный `image:`. Имя образа — `awgkeygen` (без суффикса `-bot`).
 - README: раздел «Реестры образов» с обоими вариантами.
 
-**Осталось вручную (один раз):** после первой публикации сделать GHCR-пакет
-публичным в настройках репозитория (Packages → awgkeygen-bot → Package settings
-→ Change visibility → Public) и связать с репозиторием.
+**Замечание:** GHCR-пакет публикуется публичным автоматически (проверено
+анонимным pull) — ручной смены visibility не требуется.
 
 **DoD:** ✅ один и тот же образ (один digest) в Docker Hub и GHCR; Watchtower
 может тянуть из любого; README описывает оба варианта.

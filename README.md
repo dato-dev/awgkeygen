@@ -10,7 +10,7 @@
 [![Docker Publish](https://github.com/dato-dev/awgkeygen/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/dato-dev/awgkeygen/actions/workflows/docker-publish.yml)
 [![Release Please](https://github.com/dato-dev/awgkeygen/actions/workflows/release-please.yml/badge.svg)](https://github.com/dato-dev/awgkeygen/actions/workflows/release-please.yml)
 [![Latest release](https://img.shields.io/github/v/release/dato-dev/awgkeygen?logo=github)](https://github.com/dato-dev/awgkeygen/releases)
-[![Docker Hub](https://img.shields.io/docker/pulls/dato1/awgkeygen-bot?logo=docker&label=pulls)](https://hub.docker.com/r/dato1/awgkeygen-bot)
+[![Docker Hub](https://img.shields.io/docker/pulls/dato1/awgkeygen?logo=docker&label=pulls)](https://hub.docker.com/r/dato1/awgkeygen)
 [![Conventional Commits](https://img.shields.io/badge/commits-conventional-fe5196?logo=conventionalcommits)](https://www.conventionalcommits.org/ru/)
 
 </div>
@@ -160,7 +160,7 @@ docker compose up -d --build  # обновление после git pull
 
 ## Продакшен: Docker Hub + Watchtower
 
-На сервере используйте `docker-compose-prod.yml`. Образ всегда `dato1/awgkeygen-bot:latest` — **версию в compose менять не нужно**.
+На сервере используйте `docker-compose-prod.yml`. Образ всегда `dato1/awgkeygen:latest` — **версию в compose менять не нужно**.
 
 ### Реестры образов
 
@@ -168,8 +168,8 @@ docker compose up -d --build  # обновление после git pull
 
 | Реестр | Образ |
 |---|---|
-| Docker Hub | `dato1/awgkeygen-bot` |
-| GitHub Container Registry | `ghcr.io/dato-dev/awgkeygen-bot` |
+| Docker Hub | `dato1/awgkeygen` |
+| GitHub Container Registry | `ghcr.io/dato-dev/awgkeygen` |
 
 GHCR-пакет публичный — `docker pull` работает без логина. Для приватного
 доступа: `echo $GITHUB_TOKEN | docker login ghcr.io -u <user> --password-stdin`.
@@ -211,11 +211,11 @@ docker compose -f docker-compose-prod.yml up -d
 
 ```bash
 docker compose -f docker-compose-prod.yml down
-# в compose временно укажите конкретный тег: image: dato1/awgkeygen-bot:1.3.8
+# в compose временно укажите конкретный тег: image: dato1/awgkeygen:1.3.8
 docker compose -f docker-compose-prod.yml up -d
 ```
 
-> Каждый релиз доступен отдельным тегом `dato1/awgkeygen-bot:X.Y.Z` — удобно для отката.
+> Каждый релиз доступен отдельным тегом `dato1/awgkeygen:X.Y.Z` — удобно для отката.
 
 ---
 
@@ -319,7 +319,7 @@ bot/
 ```
 коммиты feat:/fix: в main → release-please открывает release-PR
         → мёрж PR бампит VERSION + CHANGELOG, создаёт тег vX.Y.Z и Release
-        → сборка образа dato1/awgkeygen-bot:X.Y.Z + :latest
+        → сборка образа dato1/awgkeygen:X.Y.Z + :latest
 ```
 
 Секреты для публикации образа (**Settings → Secrets → Actions**):

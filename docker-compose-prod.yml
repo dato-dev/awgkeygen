@@ -2,9 +2,9 @@ services:
   awgkeygen-bot:
     # Тег latest — версию в compose менять не нужно.
     # Watchtower сам подтянет новый образ и перезапустит контейнер.
-    image: dato1/awgkeygen-bot:latest
+    image: dato1/awgkeygen:latest
     # Альтернатива — GitHub Container Registry (тот же образ):
-    # image: ghcr.io/dato-dev/awgkeygen-bot:latest
+    # image: ghcr.io/dato-dev/awgkeygen:latest
     container_name: awgkeygen-bot
     restart: unless-stopped
     env_file: .env
