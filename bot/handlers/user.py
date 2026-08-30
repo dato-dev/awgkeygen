@@ -6,7 +6,7 @@ from aiogram.types import Message
 
 from bot.awg.manager import AWGError, AWGManager
 from bot.database import Database, UserStatus
-from bot.services.keys import deliver_key, run_awg
+from bot.services.keys import deliver_key, run_awg, sync_peer_state
 from bot.texts import (
     admin_new_request,
     user_help,
@@ -103,17 +103,16 @@ async def cmd_key(
         )
         return
 
-    if user.has_key:
-        await message.answer(
-            "ℹ️ Ключ уже выдан.\n\n"
-            "/config — показать конфиг\n"
-            "/remint — перечеканить ключ"
-        )
-        return
-
     await message.answer("⏳ <b>Генерирую ключ...</b> 🔄")
 
     try:
+        if await sync_peer_state(db, awg, user):
+            await message.answer(
+                "ℹ️ Ключ уже выдан.\n\n"
+                "/config — показать конфиг\n"
+                "/remint — перечеканить ключ"
+            )
+            return
         result = await run_awg(awg.create_key, message.from_user.id)
     except AWGError as exc:
         await message.answer(f"❌ <b>Ошибка:</b> {exc}")
@@ -138,19 +137,22 @@ async def cmd_remint(
         await message.answer("❌ <b>Нет доступа</b>")
         return
 
-    if not user.has_key:
-        await message.answer("У вас ещё нет ключа. Используйте /key")
-        return
-
     await message.answer("⏳ <b>Перечеканиваю ключ...</b> 🔄")
 
     try:
-        result = await run_awg(awg.remint_key, message.from_user.id)
+        if await sync_peer_state(db, awg, user):
+            result = await run_awg(awg.remint_key, message.from_user.id)
+            reminted = True
+        else:
+            # Ключа на сервере нет (например, сервер переустановлен) — выдаём новый.
+            result = await run_awg(awg.create_key, message.from_user.id)
+            await db.set_has_key(message.from_user.id, True)
+            reminted = False
     except AWGError as exc:
         await message.answer(f"❌ <b>Ошибка:</b> {exc}")
         return
 
-    await deliver_key(message, result, remint=True)
+    await deliver_key(message, result, remint=reminted)
 
 
 @router.message(Command("config"))
@@ -164,13 +166,16 @@ async def cmd_config(
         return
 
     user = await db.get_user(message.from_user.id)
-    if not user or user.status != UserStatus.APPROVED or not user.has_key:
+    if not user or user.status != UserStatus.APPROVED:
         await message.answer("❌ Ключ не найден. Получите его: /key")
         return
 
     await message.answer("⏳ Получаю конфиг...")
 
     try:
+        if not await sync_peer_state(db, awg, user):
+            await message.answer("❌ Ключ не найден. Получите его: /key")
+            return
         result = await run_awg(awg.get_existing_key, message.from_user.id)
     except AWGError as exc:
         await message.answer(f"❌ <b>Ошибка:</b> {exc}")

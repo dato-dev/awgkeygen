@@ -200,7 +200,8 @@ def admin_help() -> str:
         f"   {_cmd('/genkey <id>')} — выдать\n"
         f"   {_cmd('/genkey <id> remint')} — перечеканить\n"
         f"   {_cmd('/delkey <id>')} — удалить с сервера\n"
-        f"   {_cmd('/repair <id>')} — починить PSK\n\n"
+        f"   {_cmd('/repair <id>')} — починить PSK\n"
+        f"   {_cmd('/resync')} — сверить базу с конфигом сервера\n\n"
         "🎁 <b>Автономные ключи</b> (без привязки к боту)\n"
         f"   {_cmd('/keygen <метка>')} — создать ключ для выдачи вручную\n"
         f"   {_cmd('/keys')} — список автономных ключей\n"
@@ -374,6 +375,40 @@ def admin_version_info(
         f"💾 База: <code>{database_path}</code>\n"
         f"👮 Админов: <b>{admins_count}</b>"
     )
+
+
+def admin_resync_result(
+    total: int,
+    server_peers: int,
+    lost: list[User],
+    found: list[User],
+) -> str:
+    lines = [
+        f"🔄 <b>Сверка с сервером</b>\n{SEP}\n",
+        f"👥 Пользователей в базе: <b>{total}</b>",
+        f"🔑 Пиров на сервере: <b>{server_peers}</b>",
+    ]
+
+    if not lost and not found:
+        lines.append("\n✅ Расхождений нет.")
+        return "\n".join(lines)
+
+    if lost:
+        lines.append(f"\n⚠️ <b>Ключ пропал с сервера</b> ({len(lost)})")
+        lines.append("<i>Флаг сброшен — выдайте ключ заново.</i>\n")
+        for u in lost:
+            lines.append(
+                f"   • <b>{u.display_name}</b>\n"
+                f"     {_cmd(f'/genkey {u.telegram_id}')}"
+            )
+
+    if found:
+        lines.append(f"\n🔑 <b>Ключ есть на сервере, но не в базе</b> ({len(found)})")
+        lines.append("<i>Флаг восстановлен.</i>\n")
+        for u in found:
+            lines.append(f"   • <b>{u.display_name}</b> — <code>{u.telegram_id}</code>")
+
+    return "\n".join(lines)
 
 
 def admin_keygen_help() -> str:

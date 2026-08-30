@@ -116,6 +116,7 @@ async def _setup_commands(bot: Bot, admin_ids: list[int]) -> None:
         BotCommand(command="keys", description="Список автономных ключей"),
         BotCommand(command="keydel", description="Удалить автономный ключ"),
         BotCommand(command="repair", description="Починить PSK"),
+        BotCommand(command="resync", description="Сверить базу с сервером"),
         BotCommand(command="notify_all", description="Рассылка всем"),
         BotCommand(command="notify_user", description="Уведомление одному"),
         BotCommand(command="user", description="Карточка пользователя"),

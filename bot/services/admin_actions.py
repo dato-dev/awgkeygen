@@ -7,7 +7,7 @@ from aiogram.types import Message
 
 from bot.awg.manager import AWGError, AWGManager, ClientKey
 from bot.database import Database, User, UserStatus
-from bot.services.keys import deliver_key, run_awg
+from bot.services.keys import deliver_key, run_awg, sync_peer_state
 from bot.texts import admin_action_ok, user_approved_notification, user_key_deleted
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,6 @@ async def issue_key(
     target_id: int,
     *,
     remint: bool = False,
-    resend: bool = False,
 ) -> tuple[ClientKey | None, str, User | None]:
     user = await db.get_user(target_id)
     if not user:
@@ -43,18 +42,18 @@ async def issue_key(
     if user.status != UserStatus.APPROVED:
         return None, "not_approved", user
 
+    if not await sync_peer_state(db, awg, user):
+        # Пира на сервере нет — создаём, даже если БД считала иначе.
+        result = await run_awg(awg.create_key, target_id)
+        await db.set_has_key(target_id, True)
+        return result, "created", user
+
     if remint:
         result = await run_awg(awg.remint_key, target_id)
-        await db.set_has_key(target_id, True)
         return result, "remint", user
-    if resend or user.has_key:
-        if not user.has_key:
-            return None, "no_key", user
-        result = await run_awg(awg.get_existing_key, target_id)
-        return result, "resend", user
-    result = await run_awg(awg.create_key, target_id)
-    await db.set_has_key(target_id, True)
-    return result, "created", user
+
+    result = await run_awg(awg.get_existing_key, target_id)
+    return result, "resend", user
 
 
 async def onboard_user(
@@ -82,10 +81,7 @@ async def onboard_user(
     await reply.answer(f"⏳ Онбординг <code>{target_id}</code>...")
 
     try:
-        if user.has_key:
-            result, action, user = await issue_key(db, awg, target_id, resend=True)
-        else:
-            result, action, user = await issue_key(db, awg, target_id)
+        result, action, user = await issue_key(db, awg, target_id)
     except AWGError as exc:
         await reply.answer(f"❌ <b>Ошибка:</b> {exc}")
         return
@@ -129,6 +125,12 @@ async def delete_user_key(
     await reply.answer(f"⏳ Удаляю ключ <code>{target_id}</code>...")
 
     try:
+        if not await sync_peer_state(db, awg, user):
+            # На сервере ключа уже нет — флаг в БД сброшен, удалять нечего.
+            await reply.answer(
+                admin_action_ok("🗑 <b>Ключа на сервере нет</b> — статус в БД обновлён", user),
+            )
+            return
         ip = await run_awg(awg.delete_key, target_id)
     except AWGError as exc:
         await reply.answer(f"❌ <b>Ошибка:</b> {exc}")

@@ -1,17 +1,39 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 from aiogram import Bot
 from aiogram.types import BufferedInputFile, Message
 
-from bot.awg.manager import ClientKey
+from bot.awg.manager import AWGManager, ClientKey
+from bot.database import Database, User
 from bot.keyboards import vpn_copy_keyboard
 from bot.texts import key_created, key_done_footer, key_vpn_text
+
+logger = logging.getLogger(__name__)
 
 
 async def run_awg(func, /, *args, **kwargs):
     return await asyncio.to_thread(func, *args, **kwargs)
+
+
+async def sync_peer_state(db: Database, awg: AWGManager, user: User) -> bool:
+    """Сверить флаг ключа в БД с конфигом сервера. Возвращает реальное состояние.
+
+    Источник истины — сервер: БД могла разойтись с ним после переноса бота на
+    другой сервер или ручной правки awg0.conf. Поле user.has_key обновляется
+    на месте, чтобы вызывающий код видел актуальное значение.
+    """
+    exists = await run_awg(awg.peer_exists, user.telegram_id)
+    if exists != user.has_key:
+        logger.warning(
+            "Флаг ключа для %s разошёлся с сервером (БД=%s, сервер=%s) — синхронизирую",
+            user.telegram_id, user.has_key, exists,
+        )
+        await db.set_has_key(user.telegram_id, exists)
+        user.has_key = exists
+    return exists
 
 
 async def deliver_key(

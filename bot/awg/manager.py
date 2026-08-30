@@ -422,14 +422,34 @@ class AWGManager:
         config = parse_config(config_text)
         return {p.public_key: p.name for p in config.peers.values()}
 
-    def has_key(self, telegram_id: int) -> bool:
-        name = self._client_name(telegram_id)
+    def _peer_names(self) -> set[str]:
         try:
-            config_text = self._read_file(self.config_path)
-            config = parse_config(config_text)
-            return name in config.peers
-        except (AWGError, ConfigParseError):
-            return False
+            config = parse_config(self._read_file(self.config_path))
+        except ConfigParseError as exc:
+            raise AWGError(f"Не удалось разобрать конфиг сервера: {exc}") from exc
+        return set(config.peers)
+
+    def peer_exists(self, telegram_id: int) -> bool:
+        """Есть ли peer пользователя в конфиге сервера.
+
+        Реальное состояние сервера — в отличие от флага has_key в БД, который
+        может разойтись с ним (перенос бота, ручная правка awg0.conf).
+        Ошибки чтения конфига не глотаем: иначе сбой docker выглядел бы как
+        «ключа нет» и приводил к лишней перевыдаче.
+        """
+        return self._client_name(telegram_id) in self._peer_names()
+
+    def list_peer_telegram_ids(self) -> set[int]:
+        """Telegram ID всех пиров вида tg_<id> в конфиге сервера."""
+        ids: set[int] = set()
+        for name in self._peer_names():
+            if not name.startswith("tg_"):
+                continue
+            try:
+                ids.add(int(name[3:]))
+            except ValueError:
+                continue
+        return ids
 
     def check_container(self) -> bool:
         try:

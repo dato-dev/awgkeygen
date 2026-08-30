@@ -11,7 +11,7 @@ from aiogram.types import CallbackQuery, Message
 
 from bot.awg.manager import AWGError, AWGManager
 from bot.config import Settings
-from bot.database import Database, UserStatus
+from bot.database import Database, User, UserStatus
 from bot.keyboards import admin_new_user_keyboard, admin_panel_keyboard, admin_user_keyboard
 from bot.services.admin_actions import (
     approve_user,
@@ -39,6 +39,7 @@ from bot.texts import (
     admin_notify_user_help,
     admin_notify_user_ok,
     admin_pending_list,
+    admin_resync_result,
     admin_traffic_all,
     admin_traffic_user,
     admin_user_card,
@@ -520,14 +521,11 @@ async def cmd_genkey(
         return
 
     remint = "remint" in extra
-    resend = "resend" in extra
 
     await message.answer(f"⏳ Обрабатываю <code>{target_id}</code>...")
 
     try:
-        result, action, user = await issue_key(
-            db, awg, target_id, remint=remint, resend=resend,
-        )
+        result, action, user = await issue_key(db, awg, target_id, remint=remint)
     except AWGError as exc:
         await message.answer(f"❌ <b>Ошибка:</b> {exc}")
         return
@@ -537,8 +535,6 @@ async def cmd_genkey(
             await message.answer(f"❌ Пользователь <code>{target_id}</code> не найден.")
         elif action == "not_approved":
             await message.answer(f"❌ Сначала <code>/approve {target_id}</code>")
-        elif action == "no_key":
-            await message.answer(f"❌ Нет ключа. <code>/genkey {target_id}</code>")
         return
 
     labels = {"created": "создан", "remint": "перечеканен", "resend": "отправлен"}
@@ -558,6 +554,37 @@ async def cmd_genkey(
         logger.exception("Не удалось доставить ключ %s", target_id)
         await message.answer("⚠️ Не доставлено пользователю. Конфиг ниже:")
         await deliver_key(message, result, remint=remint, show_footer=False)
+
+
+@router.message(Command("resync"))
+async def cmd_resync(
+    message: Message,
+    db: Database,
+    awg: AWGManager,
+    admin_ids: list[int],
+) -> None:
+    if not _is_admin(message.from_user.id, admin_ids):
+        return
+
+    await message.answer("⏳ Сверяю базу с конфигом сервера...")
+
+    try:
+        server_ids = await run_awg(awg.list_peer_telegram_ids)
+    except AWGError as exc:
+        await message.answer(f"❌ <b>Ошибка:</b> {exc}")
+        return
+
+    users = await db.list_all()
+    lost: list[User] = []
+    found: list[User] = []
+    for user in users:
+        exists = user.telegram_id in server_ids
+        if exists == user.has_key:
+            continue
+        await db.set_has_key(user.telegram_id, exists)
+        (found if exists else lost).append(user)
+
+    await message.answer(admin_resync_result(len(users), len(server_ids), lost, found))
 
 
 @router.message(Command("keygen"))
