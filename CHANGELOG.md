@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.6](https://github.com/dato-dev/awgkeygen/compare/v1.4.5...v1.4.6) (2026-08-30)
+
+
+### 🐛 Bug Fixes
+
+* treat AWG config as source of truth for key state ([10a36f8](https://github.com/dato-dev/awgkeygen/commit/10a36f826308c2267e5d61e28e705e3e59fd6218))
+
 ## [1.4.5](https://github.com/dato-dev/awgkeygen/compare/v1.4.4...v1.4.5) (2026-06-29)
 
 
